@@ -1,55 +1,75 @@
-import matplotlib.pyplot as plt
-import numpy as np
+import random
 from tkinter import *
-from tkinter import messagebox
-import json
+import pandas
 
-def calculations():
-    daily=daily_entry.get()
-    assessment=assessment_entry.get()
-    final=final_entry.get()
+BACKGROUND_COLOR = "#B1DDC6"
+current_card={}
+to_learn={}
 
-    new_data={
-            "daily practice score":daily,
-            "assessment score":assessment,
-            "final test score":final
-        }
-    with open("data.json","w") as data_file:
-        json.dump(new_data,data_file,indent=4)
 
+try:
+    data=pandas.read_csv("words_to_learn.csv")
+except FileNotFoundError:
+    og_data=pandas.read_csv("french_words.csv")
+    to_learn=og_data.to_dict(orient="records")
+else:
+    to_learn = data.to_dict(orient="records")
+
+def next_card():
+    global current_card, flip_timer
+    window.after_cancel(flip_timer)
+    current_card=random.choice(to_learn)
+    canvas.itemconfig(title_text, text="Gujarati",fill="black")
+    canvas.itemconfig(word_text, text=current_card["Gujarati"],fill="black")
+    canvas.itemconfig(old_screen,image=old_img)
+    flip_timer = window.after(1500, func=flip_card)
+
+
+def flip_card():
+    canvas.itemconfig(title_text, text="English",fill="white")
+    canvas.itemconfig(word_text, text=current_card["English"],fill="white")
+    canvas.itemconfig(old_screen, image=new_img)
+
+
+def is_known():
+    to_learn.remove(current_card)
+    new_data=pandas.DataFrame(to_learn)
+    new_data.to_csv("words_to_learn",index=False)
+    next_card()
 
 window=Tk()
-window.title("ScoreCard")
-window.config(pady=50,padx=50)
-canvas=Canvas(height=200,width=200)
+window.title("My Flashcards")
+window.config(padx=50, pady=50,bg=BACKGROUND_COLOR)
+canvas=Canvas(width=800,height=526)
+canvas.config(bg=BACKGROUND_COLOR,highlightthickness=0)
+flip_timer = window.after(1500, func=flip_card)
+old_img=PhotoImage(file="card_front.png")
+new_img=PhotoImage(file="card_back.png")
+old_screen=canvas.create_image(400,263,image=old_img)
+title_text=canvas.create_text(400,170,text="",font=("Ariel",40))
+word_text=canvas.create_text(400,350,text="",font=("Ariel",60,"bold"))
+canvas.grid(row=0,column=0,columnspan=2)
 
-score_label=Label(text="ScoreCard")
-score_label.grid(row=0,column=0)
-daily_label=Label(text="Daily test score: ")
-daily_label.grid(row=1,column=0)
+img_right=PhotoImage(file="right.png")
+right_button=Button(image=img_right,highlightthickness=0,command=is_known)
+right_button.grid(row=1,column=0)
 
-assessment_label=Label(text="Assessment score: ")
-assessment_label.grid(row=2,column=0)
-
-final_label=Label(text="Final Score: ")
-final_label.grid(row=3,column=0)
-
-daily_entry=Entry(width=40)
-daily_entry.focus()
-daily_entry.grid(row=1,column=1,columnspan=2)
-assessment_entry=Entry(width=40)
-assessment_entry.grid(row=2,column=1,columnspan=2)
-final_entry=Entry(width=40)
-final_entry.grid(row=3,column=1,columnspan=2)
+img_wrong=PhotoImage(file="wrong.png")
+wrong_button=Button(image=img_wrong,highlightthickness=0,command=next_card)
+wrong_button.grid(row=1,column=1)
 
 
-record_button=Button(text="Record",width=35,command=calculations)
-record_button.grid(row=5,column=1,columnspan=2)
 
-graph_button=Button(text="Create Graph",width=35,command=calculations)
-graph_button.grid(row=6,column=1,columnspan=2)
 
+
+
+
+
+
+
+
+
+
+next_card()
 window.mainloop()
-
-
 
