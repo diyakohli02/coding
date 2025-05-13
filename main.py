@@ -38,7 +38,7 @@ def is_known():
     next_card()
 
 window=Tk()
-window.title("My Flashcards")
+window.title("My Flashcard")
 window.config(padx=50, pady=50,bg=BACKGROUND_COLOR)
 canvas=Canvas(width=800,height=526)
 canvas.config(bg=BACKGROUND_COLOR,highlightthickness=0)
